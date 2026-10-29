@@ -204,21 +204,49 @@ $('play'+n).onclick=()=>{if(!audioUrls[i])return;let a=new Audio(audioUrls[i]);i
 $('redo'+n).onclick=()=>{audios[i]=null;audioUrls[i]=null;$('rec'+n).disabled=false;$('play'+n).disabled=true;$('redo'+n).disabled=true;$('status'+n).textContent='Ready for a new recording'}
 }
 
-$('apply').onclick=apply;
-function safeScript(s){return s.replace(/<\/script/gi,'<\\/script')}
+$('export').onclick=()=>{
+  try {
+    apply();
 
-$('export').onclick=async()=>{
-try{
-apply();
-let data={name:$('friendName').value,sender:$('senderName').value,intro:$('introInput').value,letter:$('letterInput').value,balloons:msgs,photos,audios};
-let source='<!doctype html>\n'+document.documentElement.outerHTML;
-source=source.replace(/<script id="preset">[\s\S]*?<\/script>/,'<script id="preset">window.BIRTHDAY_PRESET='+safeScript(JSON.stringify(data))+';<\\/script>');
-let blob=new Blob([source],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-a.href=url;a.download='Aayush_Birthday_Surprise.html';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
-toast('Your personalised website is downloading 💗')
-}catch(e){toast('Export failed. Please try Chrome.')}
+    const data = {
+      name: $('friendName').value,
+      sender: $('senderName').value,
+      intro: $('introInput').value,
+      letter: $('letterInput').value,
+      balloons: msgs,
+      photos: photos,
+      audios: audios
+    };
+
+    const source = '<!doctype html>\n' +
+      document.documentElement.outerHTML.replace(
+        /<script id="preset">[\s\S]*?<\/script>/,
+        () => '<script id="preset">window.BIRTHDAY_PRESET=' +
+          JSON.stringify(data).replace(/<\/script/gi, '<\\/script') +
+          ';<\/script>'
+      );
+
+    const blob = new Blob([source], {
+      type: 'text/html;charset=utf-8'
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    a.href = url;
+    a.download = 'Aayush_Birthday_Surprise.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    toast('Your personalised website is downloading 💗');
+
+  } catch (e) {
+    console.error(e);
+    toast('Download failed. Please try Chrome.');
+  }
 };
-
 function loadPreset(){
 let p=window.BIRTHDAY_PRESET;if(!p)return;
 $('friendName').value=p.name||'Aayush';$('senderName').value=p.sender||'Ishu';$('introInput').value=p.intro||'';$('letterInput').value=p.letter||'';
